@@ -1,37 +1,69 @@
 from pymongo import MongoClient
-from dotenv import load_dotenv
-import os
+from dotenv import dotenv_values
 
-load_dotenv()
+config = dotenv_values(".env")
 
 try:
-    client = MongoClient(os.getenv("MONGODB_URL"))
+    client = MongoClient(config["MONGODB_URL"])
     db = client["dictionary_lookup_cli"]
-    collection = db["dictionary"]
+    dictionary_collection = db["dictionary"]
 except Exception as e:
-    print(f"Error connecting to database: {e}")
+    print(f"\nError connecting to database: {e}")
     exit(1)
+
+class Dictionary:
+    def __init__(self, word = None, add_word = None, meaning = None):
+        self.word = word
+        self.add_word = add_word
+        self.meaning = meaning
+        self.data = None
+    
+    def search_word(self):
+        if not self.word:
+            print("\nPlease enter word, Try again")
+            return
+        self.data = dictionary_collection.find_one({"word": self.word})
+        if not self.data:
+            print("\nWord is not found in dictionary, Try another word.")
+            return
+        
+        print(f"\n{"*"*30} Word {"*"*30}")
+        print(f"Word: {self.data["word"]}")
+        print(f"Meaning: {self.data["meaning"]}")
+
+    def new_word(self):
+        if not self.add_word or not self.meaning:
+            print("\nPlease enter both word and meaning to proceed. Try again.")
+            return
+        
+        self.data = dictionary_collection.insert_one({"word": self.add_word, "meaning": self.meaning})
+        if not self.data:
+            print("\nFailed to add word to the dictionary. Try again.")
+        else:
+            print("\nWord added successfully")
 
 def main():
     while True:
-        print(f"\n{"*"*"30"} Dictionary Lookup {"*"*"30"}")
+        print(f"\n{"*"*30} Dictionary Lookup {"*"*30}")
         print("1. Search Word in Dictionary.")
         print("2. Add New Word in Dictionary.")
         print("0. Exit App.")
-        choice = input("Enter your choice: ")
+        choice = input("\nEnter your choice: ")
 
         match choice:
             case "1":
-                word = input("Enter word: ")
-                search_word(word)
+                word = input("\nEnter word: ")
+                dictionary = Dictionary(word = word.strip().lower())
+                dictionary.search_word()
             case "2":
-                add_word = input("Added new word in dictionary: ")
+                add_word = input("\nAdded new word in dictionary: ")
                 meaning = input("Enter word meaning: ")
-                new_word(add_word, meaning)
+                dictionary = Dictionary(add_word = add_word.strip().lower(), meaning = meaning.strip())
+                dictionary.new_word()
             case "0":
                 break
             case _:
-                print("Invalid Entry, Try again")
+                print("\nInvalid choice, Try again")
 
 if __name__ == "__main__":
     main()
