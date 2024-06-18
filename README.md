@@ -47,3 +47,7 @@ Follow the on-screen menu to search for a word or add a new word to the dictiona
 ## Environment Variables
 
 MONGODB_URL: Your [MongoDB](https://www.mongodb.com/cloud/atlas/register) connection string for accessing the dictionary collection.
+
+## License
+
+This project is licensed under the MIT License - see the `LICENSE` file for details.
